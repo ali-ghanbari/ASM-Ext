@@ -29,6 +29,7 @@ public class ASMExt {
 		
 		public Pair(ReferenceType typeObject, Set<String> subclassNames) {
 			this.typeObject = typeObject;
+			int i = 0;
 			this.subclassNames = subclassNames;
 		}
 	}
