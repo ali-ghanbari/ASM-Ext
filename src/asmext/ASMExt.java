@@ -14,10 +14,8 @@ import java.util.stream.Collectors;
 
 import org.objectweb.asm.ClassReader;
 
-import controlflow.analysis.CFGBuilder;
 import controlflow.analysis.CHA;
 import controlflow.callgraph.CallGraph;
-import controlflow.cfg.CFG;
 
 /**
  * Main class of ASM Ext
@@ -239,14 +237,14 @@ public class ASMExt {
 		ASMExt.v().loadAllClasses(args[0]);
 		//doing control flow analysis to construct a call graph
 		ASMExt.v().cg = (new CHA()).doCFA();
-		
-		CFG cfg = (new CFGBuilder(v()
-				.allClasses
-				.get("p_c")
-				.typeObject
-				.getMethodByName("main")
-				.get(0))).build();
-		cfg.dot();
-		System.out.println("heads: " + cfg.heads() + ", tails: " + cfg.tails());
+//		
+//		CFG cfg = (new CFGBuilder(v()
+//				.allClasses
+//				.get("p_c")
+//				.typeObject
+//				.getMethodByName("main")
+//				.get(0))).build();
+//		cfg.dot();
+//		System.out.println("heads: " + cfg.heads() + ", tails: " + cfg.tails());
 	}
 }

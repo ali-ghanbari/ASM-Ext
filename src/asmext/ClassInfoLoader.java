@@ -409,11 +409,6 @@ class ClassInfoLoader extends ClassNode {
 			
 			InstFactory factory = InstFactory.v();
 			
-//			List<Label> surroundingHandlers = activeTCBs.stream()
-//					.map(tcnb -> tcnb.handler.getLabel())
-//					.collect(Collectors.toList());
-//			if(surroundingHandlers.isEmpty())
-//				surroundingHandlers = null; //save heap space!
 			List<TryCatchBlockNode> surroundingTCBs = activeTCBs.isEmpty() ? 
 					null : new ArrayList<>(activeTCBs);
 			//this is common for all instructions
