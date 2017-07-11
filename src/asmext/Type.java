@@ -41,6 +41,21 @@ public abstract class Type {
 		return true;
 	}
 	
+	public static boolean subType(String subName, String supName) {
+		if(!subName.equals(supName)) {
+			if(PrimitiveType.primitive(subName) 
+					&& PrimitiveType.primitive(supName)) {
+				return PrimitiveType.subType(subName, supName);
+			}
+			if (!PrimitiveType.primitive(subName) 
+					&& !PrimitiveType.primitive(supName)) {
+				return ASMExt.v().subClass(subName, supName);
+			}
+			return false;
+		}
+		return true;
+	}
+	
 //	@Override
 //	public boolean equals(Object o) {
 //		if(o == null || !(o instanceof Type))

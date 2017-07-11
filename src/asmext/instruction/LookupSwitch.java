@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 import util.ImmutablePair;
 
@@ -19,8 +20,8 @@ public class LookupSwitch extends MultiTargetConditional {
 	
 	public final List<ImmutablePair<Integer, Label>> table;
 	
-	public LookupSwitch(Label defl, int[] keys, Label[] labels, List<Label> surroundingHandlers) {
-		super(Opcodes.LOOKUPSWITCH, surroundingHandlers);
+	public LookupSwitch(Label defl, int[] keys, Label[] labels, List<TryCatchBlockNode> surroundingTCBs) {
+		super(Opcodes.LOOKUPSWITCH, surroundingTCBs);
 		this.defLabel = defl;
 		this.table = new ArrayList<>();
 		assert(defl != null && keys.length == labels.length);

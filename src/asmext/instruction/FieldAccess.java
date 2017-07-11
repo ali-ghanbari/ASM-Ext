@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -21,19 +22,19 @@ public abstract class FieldAccess implements Inst {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 
 	protected FieldAccess(int opcode,
 			Type owner,
 			String name,
 			String desc,
-			List<Label> surroundingHandlers) {
+			List<TryCatchBlockNode> surroundingTCBs) {
 		this.opcode = opcode;
 		this.owner = owner;
 		this.name = name;
 		this.fieldDescriptor = desc;
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 	
 	@Override
@@ -60,8 +61,8 @@ public abstract class FieldAccess implements Inst {
 	}
 	
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 	
 	@Override

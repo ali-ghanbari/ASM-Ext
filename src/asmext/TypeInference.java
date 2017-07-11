@@ -21,13 +21,17 @@ import org.objectweb.asm.tree.analysis.Frame;
  * @author Ali Ghanbari
  *
  */
-@Deprecated
 class TypeInference {
 	private static TypeInference instance = null;
+	
 	private Map<Integer, Type[]> info;
+	
 	private String className;
+	
 	private MethodNode methNode;
+	
 	private IntPredicate opcodeWant;
+	
 	private int maxOperands;
 	
 	private TypeInference() {
@@ -115,6 +119,14 @@ class TypeInference {
 	
 	public Type[] getInfo(int instIndex) {
 		return info.get(instIndex);
+	}
+	
+	public Type getTopOfStack(int instIndex) {
+		Type[] info = this.info.get(instIndex);
+		if(info == null || info.length == 0) {
+			return null;
+		}
+		return info[info.length - 1];
 	}
 
 }

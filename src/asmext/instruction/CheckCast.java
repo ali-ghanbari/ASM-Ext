@@ -5,6 +5,7 @@ import java.util.List;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -16,12 +17,12 @@ public class CheckCast implements Inst {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 
-	public CheckCast(Type type, List<Label> surroundingHandlers) {
+	public CheckCast(Type type, List<TryCatchBlockNode> surroundingTCBs) {
 		this.type = type;
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 
 	@Override
@@ -45,8 +46,8 @@ public class CheckCast implements Inst {
 	}
 
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 
 }

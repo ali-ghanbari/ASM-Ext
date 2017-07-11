@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -17,14 +18,14 @@ public class JSR implements CallSite {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 
-	public JSR(int opcode, Label target, List<Label> surroundingHandlers) {
+	public JSR(int opcode, Label target, List<TryCatchBlockNode> surroundingTCBs) {
 		assert(opcode == Opcodes.JSR || opcode == 0xc9 /*JSR_W*/);
 		this.opcode = opcode;
 		this.target = target;
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 
 	@Override
@@ -48,8 +49,8 @@ public class JSR implements CallSite {
 	}
 
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 
 }

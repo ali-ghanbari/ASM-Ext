@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -13,7 +14,7 @@ import org.objectweb.asm.Type;
 public abstract class Invocation implements CallSite {
 	private final int opcode;
 	
-	private final Type owner;
+	public final Type owner;
 	
 	public final String methName;
 	
@@ -21,23 +22,19 @@ public abstract class Invocation implements CallSite {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 
 	protected Invocation(int opcode,
 			Type owner,
 			String methName,
 			String desc,
-			List<Label> surroundingHandlers) {
+			List<TryCatchBlockNode> surroundingTCBs) {
 		this.opcode = opcode;
 		this.owner = owner;
 		this.methName = methName;
 		this.desc = desc;
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
-	}
-
-	public Type getOwner() {
-		return owner;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 
 	@Override
@@ -56,14 +53,14 @@ public abstract class Invocation implements CallSite {
 	}
 	
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 	
 	@Override
 	public String toString() {
 		return MnemonicPrinter.instToString(this) 
-				+ " " + methName + "::" + owner + " " + desc + " " + surroundingHandlers;
+				+ " " + methName + "::" + owner + " " + desc;
 	}
 
 }

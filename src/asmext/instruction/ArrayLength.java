@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -13,11 +14,11 @@ import org.objectweb.asm.Opcodes;
 public class ArrayLength implements Inst {
 	private Label label;
 	
-	private List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 
-	public ArrayLength(List<Label> surroundingHandlers) {
+	public ArrayLength(List<TryCatchBlockNode> surroundingTCBs) {
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 
 	@Override
@@ -41,8 +42,8 @@ public class ArrayLength implements Inst {
 	}
 
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 
 }

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -17,9 +18,9 @@ public class Comparison implements Inst {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 	
-	protected Comparison(int opcode, List<Label> surroundingHandlers, int __) {
+	protected Comparison(int opcode, List<TryCatchBlockNode> surroundingTCBs, int __) {
 		this.opcode = opcode;
 		/*typed conditional instructions*/
 		/*we call these typed as they compare one or more object of certain type*/
@@ -28,15 +29,15 @@ public class Comparison implements Inst {
 				|| opcode == Opcodes.TABLESWITCH || opcode == Opcodes.LOOKUPSWITCH)*/ 
 		this.type = type(opcode);
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 
-	public Comparison(int opcode, List<Label> surroundingHandlers) {
+	public Comparison(int opcode, List<TryCatchBlockNode> surroundingTCBs) {
 		assert(0x94 /*LCMP*/ <= opcode && opcode <= 0x98 /*DCMPG*/);
 		this.opcode = opcode;
 		this.type = type(opcode);
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 	
 	private static int type(int opcode) {
@@ -89,8 +90,8 @@ public class Comparison implements Inst {
 	}
 
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 
 }

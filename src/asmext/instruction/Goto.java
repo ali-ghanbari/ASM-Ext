@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -17,14 +18,14 @@ public class Goto implements Unconditional {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 
-	public Goto(int opcode, Label target, List<Label> surroundingHandlers) {
+	public Goto(int opcode, Label target, List<TryCatchBlockNode> surroundingTCBs) {
 		assert(opcode == Opcodes.GOTO || opcode == 0xc8 /*GOTO_W*/);
 		this.opcode = opcode;
 		this.target = target;
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 
 	@Override
@@ -48,8 +49,8 @@ public class Goto implements Unconditional {
 	}
 
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 
 }

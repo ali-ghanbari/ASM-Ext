@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -11,13 +13,16 @@ import org.objectweb.asm.Opcodes;
  *
  */
 public class AThrow implements Unconditional {
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 	
 	private Label label;
+	
+	public final Type inferredType;
 
-	public AThrow(List<Label> surroundingHandlers) {
-		this.surroundingHandlers = surroundingHandlers;
+	public AThrow(List<TryCatchBlockNode> surroundingTCBs, Type inferredType) {
+		this.surroundingTCBs = surroundingTCBs;
 		this.label = null;
+		this.inferredType = inferredType;
 	}
 
 	@Override
@@ -37,12 +42,12 @@ public class AThrow implements Unconditional {
 	
 	@Override
 	public String toString() {
-		return MnemonicPrinter.instToString(this) + surroundingHandlers;
+		return MnemonicPrinter.instToString(this);
 	}
 
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 
 }

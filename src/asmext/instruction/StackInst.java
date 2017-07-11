@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -15,13 +16,13 @@ public class StackInst implements Inst {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 
-	public StackInst(int opcode, List<Label> surroundingHandlers) {
+	public StackInst(int opcode, List<TryCatchBlockNode> surroundingTCBs) {
 		this.opcode = opcode;
 		assert(Opcodes.POP <= opcode && opcode <= Opcodes.SWAP);
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 
 	@Override
@@ -45,8 +46,8 @@ public class StackInst implements Inst {
 	}
 
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
-
+	
 }

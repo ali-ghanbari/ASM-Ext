@@ -3,6 +3,7 @@ package asmext.instruction;
 import java.util.List;
 
 import org.objectweb.asm.Label;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -12,11 +13,11 @@ import org.objectweb.asm.Label;
 public class Wide implements Inst {
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 
-	public Wide(List<Label> surroundingHandlers) {
+	public Wide(List<TryCatchBlockNode> surroundingTCBs) {
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 
 	@Override
@@ -40,8 +41,8 @@ public class Wide implements Inst {
 	}
 
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 
 }

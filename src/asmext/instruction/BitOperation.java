@@ -3,6 +3,7 @@ package asmext.instruction;
 import java.util.List;
 
 import org.objectweb.asm.Label;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -16,13 +17,13 @@ public abstract class BitOperation implements Inst {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 	
-	public BitOperation(int opcode, int type, List<Label> surroundingHandlers) {
+	public BitOperation(int opcode, int type, List<TryCatchBlockNode> surroundingTCBs) {
 		this.opcode = opcode;
 		this.type = type;
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 	
 	@Override
@@ -39,10 +40,10 @@ public abstract class BitOperation implements Inst {
 	public void setLabel(Label label) {
 		this.label = label;		
 	}
-	
+		
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 	
 	@Override

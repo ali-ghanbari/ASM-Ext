@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -19,9 +20,9 @@ public class Conversion implements Inst {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 
-	public Conversion(int opcode, List<Label> surroundingHandlers) {
+	public Conversion(int opcode, List<TryCatchBlockNode> surroundingTCBs) {
 		this.opcode = opcode;
 		if(0x85 /*I2L*/ <= opcode && opcode <= 0x90 /*D2F*/) {
 			fromType = TypeTable.table[(opcode - 0x85) / 3];
@@ -32,7 +33,7 @@ public class Conversion implements Inst {
 			toType = TypeTable.table[5 + (opcode - 0x91)];
 		}
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 	
 	private static int toType(int opcode) {
@@ -79,8 +80,8 @@ public class Conversion implements Inst {
 	}
 
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 
 }

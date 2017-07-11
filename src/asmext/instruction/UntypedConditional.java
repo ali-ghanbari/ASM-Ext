@@ -3,6 +3,7 @@ package asmext.instruction;
 import java.util.List;
 
 import org.objectweb.asm.Label;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * These are called untyped for they do conditional jump based on a previous comparison.
@@ -21,14 +22,14 @@ public class UntypedConditional implements Conditional {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 
-	public UntypedConditional(int opcode, Label target, List<Label> surroundingHandlers) {
+	public UntypedConditional(int opcode, Label target, List<TryCatchBlockNode> surroundingTCBs) {
 		this.opcode = opcode;
 		assert(0x99 /*IFEQ*/ <= opcode && opcode <= 0x9e /*IFLE*/);
 		this.target = target;
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 
 	@Override
@@ -52,8 +53,8 @@ public class UntypedConditional implements Conditional {
 	}
 
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 
 }

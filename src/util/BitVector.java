@@ -1,7 +1,7 @@
 package util;
 
 /**
- * A fast implementation of bit vector
+ * A fast implementation of a big-endian bit vector
  * 
  * @author Ali Ghanbari
  *
@@ -46,6 +46,17 @@ public class BitVector {
 		assert(0 <= index && index < size);
 		final int chunk_index = index / CHUNK_SIZE;
 		bitmap[chunk_index] = assign(bitmap[chunk_index], index % CHUNK_SIZE, true);
+	}
+	
+	public void shr() {
+		add(false);
+		long firstBit = 0; //inserts a false from left
+		for(int i = 0; i < bitmap.length; i ++) {
+			long lastBit = firstBit;
+			firstBit = bitmap[i] & 1L;
+			bitmap[i] >>>= 1;
+			bitmap[i] |= lastBit << (CHUNK_SIZE - 1);
+		}
 	}
 	
 	public void reset(int index) {

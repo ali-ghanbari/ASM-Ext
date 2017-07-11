@@ -14,6 +14,11 @@ import java.util.stream.Collectors;
 
 import org.objectweb.asm.ClassReader;
 
+import controlflow.analysis.CFGBuilder;
+import controlflow.analysis.CHA;
+import controlflow.callgraph.CallGraph;
+import controlflow.cfg.CFG;
+
 /**
  * Main class of ASM Ext
  * 
@@ -29,7 +34,6 @@ public class ASMExt {
 		
 		public Pair(ReferenceType typeObject, Set<String> subclassNames) {
 			this.typeObject = typeObject;
-			int i = 0;
 			this.subclassNames = subclassNames;
 		}
 	}
@@ -39,6 +43,8 @@ public class ASMExt {
 	private Map<String, Pair> allClasses;
 	
 	private List<String> appClassNames;
+	
+	public CallGraph cg;
 	
 	private ASMExt() {
 		allClasses = new HashMap<>();
@@ -78,7 +84,11 @@ public class ASMExt {
 	}
 	
 	public Set<String> getSubClasses(String supName) {
-		return allClasses.get(supName).subclassNames;
+		Pair p = allClasses.get(supName);
+		if(p == null) {
+			return null;
+		}
+		return p.subclassNames;
 	}
 	
 	private Set<String> visited;
@@ -169,7 +179,8 @@ public class ASMExt {
 		}
 		ClassInfoLoader cil = new ClassInfoLoader(referencedTypeNames);
 		cr.accept(cil, ClassReader.SKIP_DEBUG);
-		allClasses.put(className, new Pair(cil.theClass(), new HashSet<>()));
+		ReferenceType theClass = cil.theClass();
+		allClasses.put(className, new Pair(theClass, new HashSet<>()));
 		if(fis != null) {
 			fis.close();
 		}
@@ -224,6 +235,18 @@ public class ASMExt {
 		if(args.length < 1) {
 			throw new RuntimeException("At least the name of the main class is expected.");
 		}
+		//loading classes
 		ASMExt.v().loadAllClasses(args[0]);
+		//doing control flow analysis to construct a call graph
+		ASMExt.v().cg = (new CHA()).doCFA();
+		
+		CFG cfg = (new CFGBuilder(v()
+				.allClasses
+				.get("p_c")
+				.typeObject
+				.getMethodByName("main")
+				.get(0))).build();
+		cfg.dot();
+		System.out.println("heads: " + cfg.heads() + ", tails: " + cfg.tails());
 	}
 }

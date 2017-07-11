@@ -2,8 +2,8 @@ package asmext.instruction;
 
 import java.util.List;
 
-import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -12,8 +12,8 @@ import org.objectweb.asm.Opcodes;
  */
 public class And extends BitwiseLogical {
 
-	public And(int opcode, List<Label> surroundingHandlers) {
-		super(opcode, TypeTable.table[opcode - Opcodes.IAND], surroundingHandlers);
+	public And(int opcode, List<TryCatchBlockNode> surroundingTCBs) {
+		super(opcode, TypeTable.table[opcode - Opcodes.IAND], surroundingTCBs);
 		assert(opcode == Opcodes.IAND || opcode == Opcodes.LAND);
 	}
 

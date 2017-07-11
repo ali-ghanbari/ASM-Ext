@@ -2,9 +2,9 @@ package asmext.instruction;
 
 import java.util.List;
 
-import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -13,8 +13,8 @@ import org.objectweb.asm.Type;
  */
 public class LoadTypeConst extends LoadConst {
 
-	public LoadTypeConst(int opcode, Type type, List<Label> surroundingHandlers) {
-		super(opcode, surroundingHandlers);
+	public LoadTypeConst(int opcode, Type type, List<TryCatchBlockNode> surroundingTCBs) {
+		super(opcode, surroundingTCBs);
 		assert(opcode == Opcodes.LDC || opcode == 0x13 /*LDC_W*/);
 		switch(type.getSort()) {
 		case Type.OBJECT:

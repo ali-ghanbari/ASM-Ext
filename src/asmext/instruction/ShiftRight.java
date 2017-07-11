@@ -2,8 +2,8 @@ package asmext.instruction;
 
 import java.util.List;
 
-import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -15,8 +15,8 @@ public class ShiftRight extends BitOperation {
 	
 	public final Kind kind;
 
-	public ShiftRight(int opcode, List<Label> surroundingHandlers) {
-		super(opcode, type(opcode), surroundingHandlers);
+	public ShiftRight(int opcode, List<TryCatchBlockNode> surroundingTCBs) {
+		super(opcode, type(opcode), surroundingTCBs);
 		this.kind = kind(opcode);
 		assert(this.kind != null);
 	}

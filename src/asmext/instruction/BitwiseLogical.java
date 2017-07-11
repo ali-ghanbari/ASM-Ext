@@ -2,7 +2,7 @@ package asmext.instruction;
 
 import java.util.List;
 
-import org.objectweb.asm.Label;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -11,8 +11,8 @@ import org.objectweb.asm.Label;
  */
 public abstract class BitwiseLogical extends BitOperation {
 
-	public BitwiseLogical(int opcode, int type, List<Label> surroundingHandlers) {
-		super(opcode, type, surroundingHandlers);
+	public BitwiseLogical(int opcode, int type, List<TryCatchBlockNode> surroundingTCBs) {
+		super(opcode, type, surroundingTCBs);
 	}
 
 }

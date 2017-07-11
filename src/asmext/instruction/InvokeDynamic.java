@@ -2,8 +2,8 @@ package asmext.instruction;
 
 import java.util.List;
 
-import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -11,7 +11,7 @@ import org.objectweb.asm.Opcodes;
  *
  */
 public class InvokeDynamic extends Invocation {
-	public InvokeDynamic(String methName, String desc, List<Label> surroundingHandlers) {
-		super(Opcodes.INVOKEDYNAMIC, null, methName, desc, surroundingHandlers);
+	public InvokeDynamic(String methName, String desc, List<TryCatchBlockNode> surroundingTCBs) {
+		super(Opcodes.INVOKEDYNAMIC, null, methName, desc, surroundingTCBs);
 	}
 }

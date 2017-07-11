@@ -2,7 +2,7 @@ package asmext.instruction;
 
 import java.util.List;
 
-import org.objectweb.asm.Label;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * These are called typed for they compare one or more object of certain type.
@@ -16,7 +16,7 @@ import org.objectweb.asm.Label;
  */
 public abstract class TypedConditional extends Comparison implements Conditional {
 
-	protected TypedConditional(int opcode, List<Label> surroundingHandlers) {
-		super(opcode, surroundingHandlers, 0 /*dummy*/);
+	protected TypedConditional(int opcode, List<TryCatchBlockNode> surroundingTCBs) {
+		super(opcode, surroundingTCBs, 0 /*dummy*/);
 	}
 }

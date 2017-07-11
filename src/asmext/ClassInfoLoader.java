@@ -10,6 +10,7 @@ import java.util.stream.IntStream;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -49,6 +50,8 @@ class ClassInfoLoader extends ClassNode {
 	private ReferenceType theClass;
 	
 	private List<TryCatchBlockNode> activeTCBs;
+	
+	private TypeInference typeInfo;
 	
 	public ClassInfoLoader(Set<String> referencedTypeNames) {
 		super(Opcodes.ASM5);
@@ -93,11 +96,15 @@ class ClassInfoLoader extends ClassNode {
 	}
 		
 	private void addReferencedType(org.objectweb.asm.Type type) {
-		while(type.getSort() == org.objectweb.asm.Type.ARRAY) {
+		while(type.getSort() == Type.ARRAY) {
 			type = type.getElementType(); 
 		}
-		if(type.getSort() == org.objectweb.asm.Type.OBJECT) {
-			referencedTypeNames.add(type.getClassName());
+		if(type.getSort() == Type.OBJECT) {
+			referencedTypeNames.add(type.getClassName().replace('/', '.'));
+		}
+		if(type.getSort() == Type.METHOD) {
+			assert(!type.getDescriptor().startsWith("L"));
+			referencedTypeNames.add(type.getDescriptor().replace('/', '.'));
 		}
 	}
 
@@ -138,7 +145,7 @@ class ClassInfoLoader extends ClassNode {
 					org.objectweb.asm.Type type = null;
 					//if type = null, the block can catch any exception
 					if(tcbn.type != null) {
-						type = org.objectweb.asm.Type.getObjectType(tcbn.type);
+						type = org.objectweb.asm.Type.getType(tcbn.type);
 						addReferencedType(type);
 					}
 					method.tcbs.add(new TryCatchBlock(tcbn.start.getLabel(),
@@ -228,7 +235,7 @@ class ClassInfoLoader extends ClassNode {
 			int instIndex,
 			InstFactory factory) {
 		org.objectweb.asm.Type ownerType = 
-				org.objectweb.asm.Type.getObjectType(fin.owner);
+				org.objectweb.asm.Type.getType(fin.owner);
 		addReferencedType(ownerType);
 		return factory.forTypeDescriptor(fin.desc)
 				.forName(fin.name)
@@ -244,7 +251,12 @@ class ClassInfoLoader extends ClassNode {
 	private InstFactory visitInst(InsnNode in,
 			int instIndex,
 			InstFactory factory) {
-		// nothing...
+		if(in.getOpcode() == Opcodes.ATHROW) {
+			org.objectweb.asm.Type inferredType = typeInfo.getTopOfStack(instIndex);
+			if(inferredType == null)
+				inferredType = Type.getType("java.lang.Throwable");
+			factory = factory.forInferredType(inferredType);
+		}
 		return factory;
 	}
 	
@@ -330,7 +342,7 @@ class ClassInfoLoader extends ClassNode {
 			int instIndex,
 			InstFactory factory) {
 		org.objectweb.asm.Type ownerType = 
-				org.objectweb.asm.Type.getObjectType(min.owner);
+				org.objectweb.asm.Type.getType(min.owner);
 		addReferencedType(ownerType);
 		return factory.forTypeDescriptor(min.desc)
 				.forOwner(ownerType)
@@ -378,6 +390,14 @@ class ClassInfoLoader extends ClassNode {
 	
 	@SuppressWarnings("unchecked")
 	private void visitMethodBody(MethodNode methNode, List<Inst> body) {
+		/*inferring types for ATHROW instructions*/
+		typeInfo = TypeInference.v()
+				.forMethod(methNode)
+				.ofClass(this)
+				.maxOperands(1)
+				.wanting(opcode -> opcode == Opcodes.ATHROW)
+				.doAnalysis();
+		
 		activeTCBs = new ArrayList<>();
 		
 		ListIterator<?> lit = methNode.instructions.iterator();
@@ -389,13 +409,15 @@ class ClassInfoLoader extends ClassNode {
 			
 			InstFactory factory = InstFactory.v();
 			
-			List<Label> surroundingHandlers = activeTCBs.stream()
-					.map(tcnb -> tcnb.handler.getLabel())
-					.collect(Collectors.toList());
-			if(surroundingHandlers.isEmpty())
-				surroundingHandlers = null; //save heap space!
+//			List<Label> surroundingHandlers = activeTCBs.stream()
+//					.map(tcnb -> tcnb.handler.getLabel())
+//					.collect(Collectors.toList());
+//			if(surroundingHandlers.isEmpty())
+//				surroundingHandlers = null; //save heap space!
+			List<TryCatchBlockNode> surroundingTCBs = activeTCBs.isEmpty() ? 
+					null : new ArrayList<>(activeTCBs);
 			//this is common for all instructions
-			factory.forSurroundingHandlers(surroundingHandlers);
+			factory.forSurroundingTCBs(surroundingTCBs);
 			
 			if(ai instanceof FieldInsnNode) {
 				factory = visitFieldInst((FieldInsnNode) ai, i, factory);				

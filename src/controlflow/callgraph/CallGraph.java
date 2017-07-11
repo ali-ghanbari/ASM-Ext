@@ -1,6 +1,6 @@
 package controlflow.callgraph;
 
-import java.util.Collection;
+import java.util.List;
 
 import asmext.Method;
 import asmext.instruction.Invocation;
@@ -12,7 +12,7 @@ import asmext.instruction.Invocation;
  *
  */
 public interface CallGraph {	
-	public Collection<Method> mayCall(Method m);
+	public List<Method> mayCall(Method m);
 	
-	public Collection<Method> mayCall(Invocation callSite);
+	public List<Method> mayCall(Invocation callSite);
 }

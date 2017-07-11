@@ -3,6 +3,7 @@ package asmext.instruction;
 import java.util.List;
 
 import org.objectweb.asm.Label;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -16,14 +17,14 @@ public class LoadArraySlot implements Load {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 
-	public LoadArraySlot(int opcode, List<Label> surroundingHandlers) {
+	public LoadArraySlot(int opcode, List<TryCatchBlockNode> surroundingTCBs) {
 		this.opcode = opcode;
 		assert(0x2e /*IALOAD*/ <= opcode && opcode <= 0x35 /*SALOAD*/);
 		type = TypeTable.table[opcode - 0x2e];
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 
 	@Override
@@ -47,8 +48,8 @@ public class LoadArraySlot implements Load {
 	}
 
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 
 }

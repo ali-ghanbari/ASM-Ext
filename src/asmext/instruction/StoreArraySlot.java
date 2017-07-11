@@ -3,6 +3,7 @@ package asmext.instruction;
 import java.util.List;
 
 import org.objectweb.asm.Label;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -16,14 +17,14 @@ public class StoreArraySlot implements Store {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 
-	public StoreArraySlot(int opcode, List<Label> surroundingHandlers) {
+	public StoreArraySlot(int opcode, List<TryCatchBlockNode> surroundingTCBs) {
 		this.opcode = opcode;
 		assert(0x4f /*IASTORE*/ <= opcode && opcode <= 0x56 /*SASTORE*/);
 		type = TypeTable.table[opcode - 0x4f];
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 
 	@Override
@@ -47,8 +48,8 @@ public class StoreArraySlot implements Store {
 	}
 
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 
 }

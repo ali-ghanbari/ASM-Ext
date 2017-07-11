@@ -2,9 +2,9 @@ package asmext.instruction;
 
 import java.util.List;
 
-import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -13,8 +13,8 @@ import org.objectweb.asm.Type;
  */
 public class New extends Allocation {
 
-	public New(Type type, List<Label> surroundingHandlers) {
-		super(Opcodes.NEW, type, surroundingHandlers);
+	public New(Type type, List<TryCatchBlockNode> surroundingTCBs) {
+		super(Opcodes.NEW, type, surroundingTCBs);
 	}
 
 }

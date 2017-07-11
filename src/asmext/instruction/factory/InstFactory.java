@@ -7,6 +7,7 @@ import java.util.Map;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 import asmext.instruction.AThrow;
 import asmext.instruction.Addition;
@@ -95,7 +96,8 @@ public class InstFactory {
 		DESC,
 		TYPE,
 		DIMS,
-		SURROUNDING
+		SURROUNDING,
+		INFERRED_TYPE
 	}
 	
 	private Map<Param, Object> options;
@@ -176,8 +178,13 @@ public class InstFactory {
 		return this;
 	}
 	
-	public InstFactory forSurroundingHandlers(List<Label> surroundingHandlers) {
-		options.put(Param.SURROUNDING, surroundingHandlers);
+	public InstFactory forSurroundingTCBs(List<TryCatchBlockNode> surroundingTCBs) {
+		options.put(Param.SURROUNDING, surroundingTCBs);
+		return this;
+	}
+	
+	public InstFactory forInferredType(Type inferredType) {
+		options.put(Param.INFERRED_TYPE, inferredType);
 		return this;
 	}
 	
@@ -195,16 +202,17 @@ public class InstFactory {
 		String desc;
 		int dims = 1;
 		Type type;
-		List<Label> surroundingHandlers;
+		List<TryCatchBlockNode> surroundingTCBs;
+		Type inferredType;
 		
 		//all of instruction have this
-		surroundingHandlers = (List<Label>) options.get(Param.SURROUNDING);
+		surroundingTCBs = (List<TryCatchBlockNode>) options.get(Param.SURROUNDING);
 		
 		switch(opcode) {
 		case Opcodes.NOP:
-			return new Nop(surroundingHandlers);
+			return new Nop(surroundingTCBs);
 		case Opcodes.ACONST_NULL:
-			return new LoadNullConst(surroundingHandlers);
+			return new LoadNullConst(surroundingTCBs);
 		case Opcodes.ICONST_M1:
 		case Opcodes.ICONST_0:
 		case Opcodes.ICONST_1:
@@ -212,43 +220,43 @@ public class InstFactory {
 		case Opcodes.ICONST_3:
 		case Opcodes.ICONST_4:
 		case Opcodes.ICONST_5:
-			return new LoadIntConst(opcode, surroundingHandlers);
+			return new LoadIntConst(opcode, surroundingTCBs);
 		case Opcodes.LCONST_0:
 		case Opcodes.LCONST_1:
-			return new LoadLongConst(opcode, surroundingHandlers);
+			return new LoadLongConst(opcode, surroundingTCBs);
 		case Opcodes.FCONST_0:
 		case Opcodes.FCONST_1:
-			return new LoadFloatConst(opcode, surroundingHandlers);
+			return new LoadFloatConst(opcode, surroundingTCBs);
 		case Opcodes.DCONST_0:
 		case Opcodes.DCONST_1:
-			return new LoadDoubleConst(opcode, surroundingHandlers);
+			return new LoadDoubleConst(opcode, surroundingTCBs);
 		case Opcodes.BIPUSH:
 			value = options.get(Param.VALUE);
 			if(value instanceof Byte) {
-				return new LoadIntConst(opcode, (byte) value, surroundingHandlers);
+				return new LoadIntConst(opcode, (byte) value, surroundingTCBs);
 			}
 			throw new RuntimeException("invalid value type: byte expected");
 		case Opcodes.SIPUSH:
 			value = options.get(Param.VALUE);
 			if(value instanceof Short) {
-				return new LoadIntConst(opcode, (short) value, surroundingHandlers);
+				return new LoadIntConst(opcode, (short) value, surroundingTCBs);
 			}
 			throw new RuntimeException("invalid value type: short expected");
 		case Opcodes.LDC:
 		case 0x13: /*LDC_W*/
 			value = options.get(Param.VALUE);
 			if(value instanceof String) {
-				return new LoadStringConst(opcode, (String) value, surroundingHandlers);
+				return new LoadStringConst(opcode, (String) value, surroundingTCBs);
 			} else if(value instanceof Type) {
-				return new LoadTypeConst(opcode, (Type) value, surroundingHandlers);
+				return new LoadTypeConst(opcode, (Type) value, surroundingTCBs);
 			} else if(value instanceof Integer) {
-				return new LoadIntConst(opcode, (int) value, surroundingHandlers);
+				return new LoadIntConst(opcode, (int) value, surroundingTCBs);
 			} else if(value instanceof Long) {
-				return new LoadLongConst(opcode, (long) value, surroundingHandlers);
+				return new LoadLongConst(opcode, (long) value, surroundingTCBs);
 			} else if(value instanceof Float) {
-				return new LoadFloatConst(opcode, (float) value, surroundingHandlers);
+				return new LoadFloatConst(opcode, (float) value, surroundingTCBs);
 			} else if(value instanceof Double) {
-				return new LoadDoubleConst(opcode, (double) value, surroundingHandlers);
+				return new LoadDoubleConst(opcode, (double) value, surroundingTCBs);
 			}
 			throw new RuntimeException("invalid value type: string/type expected");
 		case 0x14:/*LDC2_W*/
@@ -257,55 +265,55 @@ public class InstFactory {
 		case 0x1b: /*ILOAD_1*/
 		case 0x1c: /*ILOAD_2*/
 		case 0x1d: /*ILOAD_3*/
-			return new LoadIntLocal(opcode, surroundingHandlers);
+			return new LoadIntLocal(opcode, surroundingTCBs);
 		case Opcodes.ILOAD:
 			varIndex = (int) options.get(Param.VAR_INDEX);
 			if(varIndex >= 0) {
-				return new LoadIntLocal(opcode, varIndex, surroundingHandlers);
+				return new LoadIntLocal(opcode, varIndex, surroundingTCBs);
 			}
 			throw new RuntimeException("invalid variable index");
 		case 0x1e: /*LLOAD_0*/
 		case 0x1f: /*LLOAD_1*/
 		case 0x20: /*LLOAD_2*/
 		case 0x21: /*LLOAD_3*/
-			return new LoadLongLocal(opcode, surroundingHandlers);
+			return new LoadLongLocal(opcode, surroundingTCBs);
 		case Opcodes.LLOAD:
 			varIndex = (int) options.get(Param.VAR_INDEX);
 			if(varIndex >= 0) {
-				return new LoadLongLocal(opcode, varIndex, surroundingHandlers);
+				return new LoadLongLocal(opcode, varIndex, surroundingTCBs);
 			}
 			throw new RuntimeException("invalid variable index");
 		case 0x22: /*FLOAD_0*/
 		case 0x23: /*FLOAD_1*/
 		case 0x24: /*FLOAD_2*/
 		case 0x25: /*FLOAD_3*/
-			return new LoadFloatLocal(opcode, surroundingHandlers);
+			return new LoadFloatLocal(opcode, surroundingTCBs);
 		case Opcodes.FLOAD:
 			varIndex = (int) options.get(Param.VAR_INDEX);
 			if(varIndex >= 0) {
-				return new LoadFloatLocal(opcode, varIndex, surroundingHandlers);
+				return new LoadFloatLocal(opcode, varIndex, surroundingTCBs);
 			}
 			throw new RuntimeException("invalid variable index");
 		case 0x26: /*DLOAD_0*/
 		case 0x27: /*DLOAD_1*/
 		case 0x28: /*DLOAD_2*/
 		case 0x29: /*DLOAD_3*/
-			return new LoadDoubleLocal(opcode, surroundingHandlers);
+			return new LoadDoubleLocal(opcode, surroundingTCBs);
 		case Opcodes.DLOAD:
 			varIndex = (int) options.get(Param.VAR_INDEX);
 			if(varIndex >= 0) {
-				return new LoadDoubleLocal(opcode, varIndex, surroundingHandlers);
+				return new LoadDoubleLocal(opcode, varIndex, surroundingTCBs);
 			}
 			throw new RuntimeException("invalid variable index");
 		case 0x2a: /*ALOAD_0*/
 		case 0x2b: /*ALOAD_1*/
 		case 0x2c: /*ALOAD_2*/
 		case 0x2d: /*ALOAD_3*/
-			return new LoadRefLocal(opcode, surroundingHandlers);
+			return new LoadRefLocal(opcode, surroundingTCBs);
 		case Opcodes.ALOAD:
 			varIndex = (int) options.get(Param.VAR_INDEX);
 			if(varIndex >= 0) {
-				return new LoadRefLocal(opcode, varIndex, surroundingHandlers);
+				return new LoadRefLocal(opcode, varIndex, surroundingTCBs);
 			}
 			throw new RuntimeException("invalid variable index");
 		case Opcodes.IALOAD:
@@ -316,60 +324,60 @@ public class InstFactory {
 		case Opcodes.BALOAD:
 		case Opcodes.CALOAD:
 		case Opcodes.SALOAD:
-			return new LoadArraySlot(opcode, surroundingHandlers);
+			return new LoadArraySlot(opcode, surroundingTCBs);
 		case 0x3b: /*ISTORE_0*/
 		case 0x3c: /*ISTORE_1*/
 		case 0x3d: /*ISTORE_2*/
 		case 0x3e: /*ISTORE_3*/
-			return new StoreIntLocal(opcode, surroundingHandlers);
+			return new StoreIntLocal(opcode, surroundingTCBs);
 		case Opcodes.ISTORE:
 			varIndex = (int) options.get(Param.VAR_INDEX);
 			if(varIndex >= 0) {
-				return new StoreIntLocal(opcode, varIndex, surroundingHandlers);
+				return new StoreIntLocal(opcode, varIndex, surroundingTCBs);
 			}
 			throw new RuntimeException("invalid variable index");
 		case 0x3f: /*LSTORE_0*/
 		case 0x40: /*LSTORE_1*/
 		case 0x41: /*LSTORE_2*/
 		case 0x42: /*LSTORE_3*/
-			return new StoreLongLocal(opcode, surroundingHandlers);
+			return new StoreLongLocal(opcode, surroundingTCBs);
 		case Opcodes.LSTORE:
 			varIndex = (int) options.get(Param.VAR_INDEX);
 			if(varIndex >= 0) {
-				return new StoreLongLocal(opcode, varIndex, surroundingHandlers);
+				return new StoreLongLocal(opcode, varIndex, surroundingTCBs);
 			}
 			throw new RuntimeException("invalid variable index");
 		case 0x43: /*FSTORE_0*/
 		case 0x44: /*FSTORE_1*/
 		case 0x45: /*FSTORE_2*/
 		case 0x46: /*FSTORE_3*/
-			return new StoreFloatLocal(opcode, surroundingHandlers);
+			return new StoreFloatLocal(opcode, surroundingTCBs);
 		case Opcodes.FSTORE:
 			varIndex = (int) options.get(Param.VAR_INDEX);
 			if(varIndex >= 0) {
-				return new StoreFloatLocal(opcode, varIndex, surroundingHandlers);
+				return new StoreFloatLocal(opcode, varIndex, surroundingTCBs);
 			}
 			throw new RuntimeException("invalid variable index");
 		case 0x47: /*DSTORE_0*/
 		case 0x48: /*DSTORE_1*/
 		case 0x49: /*DSTORE_2*/
 		case 0x4a: /*DSTORE_3*/
-			return new StoreDoubleLocal(opcode, surroundingHandlers);
+			return new StoreDoubleLocal(opcode, surroundingTCBs);
 		case Opcodes.DSTORE:
 			varIndex = (int) options.get(Param.VAR_INDEX);
 			if(varIndex >= 0) {
-				return new StoreDoubleLocal(opcode, varIndex, surroundingHandlers);
+				return new StoreDoubleLocal(opcode, varIndex, surroundingTCBs);
 			}
 			throw new RuntimeException("invalid variable index");
 		case 0x4b: /*ASTORE_0*/
 		case 0x4c: /*ASTORE_1*/
 		case 0x4d: /*ASTORE_2*/
 		case 0x4e: /*ASTORE_3*/
-			return new StoreRefLocal(opcode, surroundingHandlers);
+			return new StoreRefLocal(opcode, surroundingTCBs);
 		case Opcodes.ASTORE:
 			varIndex = (int) options.get(Param.VAR_INDEX);
 			if(varIndex >= 0) {
-				return new StoreRefLocal(opcode, varIndex, surroundingHandlers);
+				return new StoreRefLocal(opcode, varIndex, surroundingTCBs);
 			}
 			throw new RuntimeException("invalid variable index");
 		case Opcodes.IASTORE:
@@ -380,7 +388,7 @@ public class InstFactory {
 		case Opcodes.BASTORE:
 		case Opcodes.CASTORE:
 		case Opcodes.SASTORE:
-			return new StoreArraySlot(opcode, surroundingHandlers);
+			return new StoreArraySlot(opcode, surroundingTCBs);
 		case Opcodes.POP:
 		case Opcodes.POP2:
 		case Opcodes.DUP:
@@ -390,59 +398,59 @@ public class InstFactory {
 		case Opcodes.DUP2_X1:
 		case Opcodes.DUP2_X2:
 		case Opcodes.SWAP:
-			return new StackInst(opcode, surroundingHandlers);
+			return new StackInst(opcode, surroundingTCBs);
 		case Opcodes.IADD:
 		case Opcodes.LADD:
 		case Opcodes.FADD:
 		case Opcodes.DADD:
-			return new Addition(opcode, surroundingHandlers);
+			return new Addition(opcode, surroundingTCBs);
 		case Opcodes.ISUB:
 		case Opcodes.LSUB:
 		case Opcodes.FSUB:
 		case Opcodes.DSUB:
-			return new Subtraction(opcode, surroundingHandlers);
+			return new Subtraction(opcode, surroundingTCBs);
 		case Opcodes.IMUL:
 		case Opcodes.LMUL:
 		case Opcodes.FMUL:
 		case Opcodes.DMUL:
-			return new Multiplication(opcode, surroundingHandlers);
+			return new Multiplication(opcode, surroundingTCBs);
 		case Opcodes.IDIV:
 		case Opcodes.LDIV:
 		case Opcodes.FDIV:
 		case Opcodes.DDIV:
-			return new Division(opcode, surroundingHandlers);
+			return new Division(opcode, surroundingTCBs);
 		case Opcodes.IREM:
 		case Opcodes.LREM:
 		case Opcodes.FREM:
 		case Opcodes.DREM:
-			return new Remainder(opcode, surroundingHandlers);
+			return new Remainder(opcode, surroundingTCBs);
 		case Opcodes.INEG:
 		case Opcodes.LNEG:
 		case Opcodes.FNEG:
 		case Opcodes.DNEG:
-			return new Negation(opcode, surroundingHandlers);
+			return new Negation(opcode, surroundingTCBs);
 		case Opcodes.ISHL:
 		case Opcodes.LSHL:
-			return new ShiftLeft(opcode, surroundingHandlers);
+			return new ShiftLeft(opcode, surroundingTCBs);
 		case Opcodes.ISHR:
 		case Opcodes.LSHR:
 		case Opcodes.IUSHR:
 		case Opcodes.LUSHR:
-			return new ShiftRight(opcode, surroundingHandlers);
+			return new ShiftRight(opcode, surroundingTCBs);
 		case Opcodes.IAND:
 		case Opcodes.LAND:
-			return new And(opcode, surroundingHandlers);
+			return new And(opcode, surroundingTCBs);
 		case Opcodes.IOR:
 		case Opcodes.LOR:
-			return new Or(opcode, surroundingHandlers);
+			return new Or(opcode, surroundingTCBs);
 		case Opcodes.IXOR:
 		case Opcodes.LXOR:
-			return new Xor(opcode, surroundingHandlers);
+			return new Xor(opcode, surroundingTCBs);
 		case Opcodes.IINC:
 			varIndex = (int) options.get(Param.VAR_INDEX);
 			value = options.get(Param.VALUE);
 			if(value instanceof Integer && varIndex >= 0) {
-				return new IInc(varIndex, (int) value, surroundingHandlers);
+				return new IInc(varIndex, (int) value, surroundingTCBs);
 			}
 			throw new RuntimeException("invalid index or value type");
 		case Opcodes.I2L:
@@ -460,13 +468,13 @@ public class InstFactory {
 		case Opcodes.I2B:
 		case Opcodes.I2C:
 		case Opcodes.I2S:
-			return new Conversion(opcode, surroundingHandlers);
+			return new Conversion(opcode, surroundingTCBs);
 		case Opcodes.LCMP:
 		case Opcodes.FCMPL:
 		case Opcodes.FCMPG:
 		case Opcodes.DCMPL:
 		case Opcodes.DCMPG:
-			return new Comparison(opcode, surroundingHandlers);
+			return new Comparison(opcode, surroundingTCBs);
 		case Opcodes.IFEQ:
 		case Opcodes.IFNE:
 		case Opcodes.IFLT:
@@ -475,7 +483,7 @@ public class InstFactory {
 		case Opcodes.IFLE:
 			label = (Label) options.get(Param.SINGLE_TARGET);
 			if(label != null) {
-				return new UntypedConditional(opcode, label, surroundingHandlers);
+				return new UntypedConditional(opcode, label, surroundingTCBs);
 			}
 			throw new RuntimeException("a jump target expected");
 		case Opcodes.IF_ICMPEQ:
@@ -490,27 +498,27 @@ public class InstFactory {
 		case Opcodes.IFNONNULL:
 			label = (Label) options.get(Param.SINGLE_TARGET);
 			if(label != null) {
-				return new SingleTargetConditional(opcode, label, surroundingHandlers);
+				return new SingleTargetConditional(opcode, label, surroundingTCBs);
 			}
 			throw new RuntimeException("a jump target expected");
 		case 0xc8: /*GOTO_W*/
 		case Opcodes.GOTO:
 			label = (Label) options.get(Param.SINGLE_TARGET);
 			if(label != null) {
-				return new Goto(opcode, label, surroundingHandlers);
+				return new Goto(opcode, label, surroundingTCBs);
 			}
 			throw new RuntimeException("a jump target expected");
 		case 0xc9: /*JSR_W*/
 		case Opcodes.JSR:
 			label = (Label) options.get(Param.SINGLE_TARGET);
 			if(label != null) {
-				return new JSR(opcode, label, surroundingHandlers);
+				return new JSR(opcode, label, surroundingTCBs);
 			}
 			throw new RuntimeException("a jump target expected");
 		case Opcodes.RET:
 			varIndex = (int) options.get(Param.VAR_INDEX);
 			if(varIndex >= 0) {
-				return new Ret(varIndex, surroundingHandlers);
+				return new Ret(varIndex, surroundingTCBs);
 			}
 			throw new RuntimeException("invalid variable index");
 		case Opcodes.TABLESWITCH:
@@ -519,7 +527,7 @@ public class InstFactory {
 			max = (int) options.get(Param.MAX);
 			labels = (Label[]) options.get(Param.LABELS);
 			if(label != null && labels.length == (max - min + 1)) {
-				return new TableSwitch(min, max, label, labels, surroundingHandlers);			
+				return new TableSwitch(min, max, label, labels, surroundingTCBs);			
 			}
 			throw new RuntimeException("TABLESWITCH provided with invalid argument(s)");
 		case Opcodes.LOOKUPSWITCH:
@@ -527,7 +535,7 @@ public class InstFactory {
 			keys = (int[]) options.get(Param.KEYS);
 			labels = (Label[]) options.get(Param.LABELS);
 			if(label != null && labels.length == keys.length) {
-				return new LookupSwitch(label, keys, labels, surroundingHandlers);			
+				return new LookupSwitch(label, keys, labels, surroundingTCBs);			
 			}
 			throw new RuntimeException("LOOKUPSWITCH provided with invalid argument(s)");
 		case Opcodes.IRETURN:
@@ -536,7 +544,7 @@ public class InstFactory {
 		case Opcodes.DRETURN:
 		case Opcodes.ARETURN:
 		case Opcodes.RETURN:
-			return new Return(opcode, surroundingHandlers);
+			return new Return(opcode, surroundingTCBs);
 		case Opcodes.GETSTATIC:
 		case Opcodes.PUTSTATIC:
 		case Opcodes.GETFIELD:
@@ -546,20 +554,20 @@ public class InstFactory {
 			owner = (Type) options.get(Param.OWNER);
 			if(name != null && desc != null && owner != null) {
 				if(opcode == Opcodes.GETSTATIC)
-					return new GetStaticField(owner, name, desc, surroundingHandlers);
+					return new GetStaticField(owner, name, desc, surroundingTCBs);
 				if(opcode == Opcodes.PUTSTATIC)
-					return new SetStaticField(owner, name, desc, surroundingHandlers);
+					return new SetStaticField(owner, name, desc, surroundingTCBs);
 				if(opcode == Opcodes.PUTFIELD)
-					return new SetInstanceField(owner, name, desc, surroundingHandlers);
+					return new SetInstanceField(owner, name, desc, surroundingTCBs);
 				if(opcode == Opcodes.GETFIELD)
-					return new GetInstanceField(owner, name, desc, surroundingHandlers);
+					return new GetInstanceField(owner, name, desc, surroundingTCBs);
 			}
 			throw new RuntimeException("field access instruction provided with invalid argument(s)");
 		case Opcodes.INVOKEDYNAMIC:
 			name = (String) options.get(Param.NAME);
 			desc = (String) options.get(Param.DESC);
 			if(name != null && desc != null) {
-				return new InvokeDynamic(name, desc, surroundingHandlers);
+				return new InvokeDynamic(name, desc, surroundingTCBs);
 			}
 			throw new RuntimeException("INVOKEDYNAMIC instruction provided with invalid argument(s)");
 		case Opcodes.INVOKEINTERFACE:
@@ -571,13 +579,13 @@ public class InstFactory {
 			owner = (Type) options.get(Param.OWNER);
 			if(name != null && desc != null && owner != null) {
 				if(opcode == Opcodes.INVOKEINTERFACE)
-					return new InvokeInterface(owner, name, desc, surroundingHandlers);
+					return new InvokeInterface(owner, name, desc, surroundingTCBs);
 				if(opcode == Opcodes.INVOKESPECIAL)
-					return new InvokeSpecial(owner, name, desc, surroundingHandlers);
+					return new InvokeSpecial(owner, name, desc, surroundingTCBs);
 				if(opcode == Opcodes.INVOKESTATIC)
-					return new InvokeStatic(owner, name, desc, surroundingHandlers);
+					return new InvokeStatic(owner, name, desc, surroundingTCBs);
 				if(opcode == Opcodes.INVOKEVIRTUAL)
-					return new InvokeVirtual(owner, name, desc, surroundingHandlers);
+					return new InvokeVirtual(owner, name, desc, surroundingTCBs);
 			}
 			throw new RuntimeException("method invocation instruction provided with invalid argument(s)");
 		case Opcodes.MULTIANEWARRAY:
@@ -586,41 +594,45 @@ public class InstFactory {
 		case Opcodes.NEWARRAY:
 			type = (Type) options.get(Param.TYPE);
 			if(type != null && dims >= 1) {
-				return new NewArray(opcode, type, dims, surroundingHandlers);
+				return new NewArray(opcode, type, dims, surroundingTCBs);
 			}
 			throw new RuntimeException("array allocation instruction provided with invalid argument(s)");
 		case Opcodes.NEW:
 			type = (Type) options.get(Param.TYPE);
 			if(type != null) {
-				return new New(type, surroundingHandlers);
+				return new New(type, surroundingTCBs);
 			}
 			throw new RuntimeException("object allocation instruction provided with invalid argument(s)");
 		case Opcodes.ARRAYLENGTH:
-			return new ArrayLength(surroundingHandlers);
+			return new ArrayLength(surroundingTCBs);
 		case Opcodes.ATHROW:
-			return new AThrow(surroundingHandlers);
+			inferredType = (Type) options.get(Param.INFERRED_TYPE);
+			if(inferredType != null) {
+				return new AThrow(surroundingTCBs, inferredType);
+			}
+			throw new RuntimeException("inferred type expected");
 		case Opcodes.MONITORENTER:
-			return new MonitorEnter(surroundingHandlers);
+			return new MonitorEnter(surroundingTCBs);
 		case Opcodes.MONITOREXIT:
-			return new MonitorExit(surroundingHandlers);
+			return new MonitorExit(surroundingTCBs);
 		case Opcodes.CHECKCAST:
 			type = (Type) options.get(Param.TYPE);
 			if(type != null) {
-				return new CheckCast(type, surroundingHandlers);
+				return new CheckCast(type, surroundingTCBs);
 			}
 			throw new RuntimeException("CHECKCAST instruction provided with invalid argument(s)");
 		case Opcodes.INSTANCEOF:
 			type = (Type) options.get(Param.TYPE);
 			if(type != null) {
-				return new InstanceOf(type, surroundingHandlers);
+				return new InstanceOf(type, surroundingTCBs);
 			}
 			throw new RuntimeException("INSTANCEOF instruction provided with invalid argument(s)");
 		case 0xc4: /*WIDE*/
-			return new Wide(surroundingHandlers);
+			return new Wide(surroundingTCBs);
 		case 0xca: /*BREAKPOINT*/
 		case 0xfe: /*IMPDEP1*/
 		case 0xff: /*IMPDEP2*/
-			return new Reserved(opcode, surroundingHandlers);
+			return new Reserved(opcode, surroundingTCBs);
 		default:
 			throw new RuntimeException("invalid opcode");	
 		}

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -17,9 +18,9 @@ public class Return implements Unconditional {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final  List<TryCatchBlockNode> surroundingTCBs;
 
-	public Return(int opcode, List<Label> surroundingHandlers) {
+	public Return(int opcode,  List<TryCatchBlockNode> surroundingTCBs) {
 		this.opcode = opcode;
 		if(0xac /*IRETURN*/ <= opcode && opcode <= 0xb0 /*ARETURN*/) {
 			this.type = TypeTable.table[opcode - 0xac];
@@ -28,7 +29,7 @@ public class Return implements Unconditional {
 			this.type = TypeTable.table[8]; //VOID
 		}
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 
 	@Override
@@ -52,8 +53,9 @@ public class Return implements Unconditional {
 	}
 
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
+	
 
 }

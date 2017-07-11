@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -15,13 +16,13 @@ public abstract class MonitorOperation implements Inst {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 
-	protected MonitorOperation(int opcode, List<Label> surroundingHandlers) {
+	protected MonitorOperation(int opcode, List<TryCatchBlockNode> surroundingTCBs) {
 		this.opcode = opcode;
 		assert(opcode == Opcodes.MONITORENTER || opcode == Opcodes.MONITOREXIT);
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 
 	@Override
@@ -40,8 +41,8 @@ public abstract class MonitorOperation implements Inst {
 	}
 	
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 	
 	@Override

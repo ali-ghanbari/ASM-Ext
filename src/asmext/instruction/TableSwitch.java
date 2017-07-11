@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -21,8 +22,8 @@ public class TableSwitch extends MultiTargetConditional {
 	
 	public final Label[] labels;
 
-	public TableSwitch(int min, int max, Label defl, Label[] labels, List<Label> surroundingHandlers) {
-		super(Opcodes.TABLESWITCH, surroundingHandlers);
+	public TableSwitch(int min, int max, Label defl, Label[] labels, List<TryCatchBlockNode> surroundingTCBs) {
+		super(Opcodes.TABLESWITCH, surroundingTCBs);
 		this.min = min;
 		this.max = max;
 		this.defLabel = defl;

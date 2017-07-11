@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -17,13 +18,13 @@ public class IInc implements LoadLocal, StoreLocal {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 	
-	public IInc(int varIndex, int value, List<Label> surroundingHandlers) {
+	public IInc(int varIndex, int value, List<TryCatchBlockNode> surroundingTCBs) {
 		this.varIndex = varIndex;
 		this.value = value;
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 	
 	@Override
@@ -48,8 +49,8 @@ public class IInc implements LoadLocal, StoreLocal {
 	}
 
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 
 }

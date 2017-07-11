@@ -2,8 +2,8 @@ package asmext.instruction;
 
 import java.util.List;
 
-import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -12,8 +12,8 @@ import org.objectweb.asm.Opcodes;
  */
 public class MonitorExit extends MonitorOperation {
 
-	public MonitorExit(List<Label> surroundingHandlers) {
-		super(Opcodes.MONITOREXIT, surroundingHandlers);
+	public MonitorExit(List<TryCatchBlockNode> surroundingTCBs) {
+		super(Opcodes.MONITOREXIT, surroundingTCBs);
 	}
 
 }

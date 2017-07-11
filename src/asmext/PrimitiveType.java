@@ -35,7 +35,7 @@ public class PrimitiveType extends Type {
 		new Pair("C", new HashSet<>())
 	};
 		
-	public static final boolean subType(String subName, String supName) {
+	public static boolean subType(String subName, String supName) {
 		for(Pair p : primitives) {
 			if(p.typeName.equals(supName)) {
 				return p.subNames.contains(subName);

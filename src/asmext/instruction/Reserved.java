@@ -3,6 +3,7 @@ package asmext.instruction;
 import java.util.List;
 
 import org.objectweb.asm.Label;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -14,15 +15,15 @@ public class Reserved implements Inst {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 
-	public Reserved(int opcode, List<Label> surroundingHandlers) {
+	public Reserved(int opcode, List<TryCatchBlockNode> surroundingTCBs) {
 		assert(opcode == 0xca /*BREAKPOINT*/ 
 				|| opcode == 0xfe /*IMPDEP1*/ 
 				|| opcode == 0xff /*IMPDEP2*/);
 		this.opcode = opcode;
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 
 	@Override
@@ -46,8 +47,8 @@ public class Reserved implements Inst {
 	}
 
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 
 }

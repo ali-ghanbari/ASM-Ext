@@ -1,7 +1,6 @@
 package controlflow.analysis;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -42,13 +41,24 @@ public class CHA {
 			String desc,
 			boolean virtual) {
 		List<Method> methods = new ArrayList<>();
+		
 		String ownerClassName = "java.lang.Object";
-		if(owner.getSort() == Type.OBJECT)
+		
+		if(owner.getSort() == Type.OBJECT) {
 			ownerClassName = owner.getClassName();
+		}
+		if(owner.getSort() == Type.METHOD) {
+			ownerClassName = owner.getDescriptor();
+		}
+		
+		ownerClassName = ownerClassName.replace('/', '.');
+		
 		List<Method> candidateMethods = ASMExt.v()
 				.getClassByName(ownerClassName)
 				.getMethodByName(methName);
+		
 		methods.addAll(candidateMethods);
+		
 		//method calls on arrays will be directed to "java.lang.Object"
 		if(virtual && owner.getSort() != Type.ARRAY) {
 			for(String subName : ASMExt.v().getSubClasses(ownerClassName)) {
@@ -58,10 +68,13 @@ public class CHA {
 				methods.addAll(candidateMethods);
 			}
 		}
+		
 		Type[] actualTypes = Type.getType(desc).getArgumentTypes();
+		
 		Map<String, List<Method>> groups = methods.stream()
 			.filter(meth -> {
 				Type[] formalTypes = meth.getType().getArgumentTypes();
+				
 				if(formalTypes.length == actualTypes.length) {
 					for(int i = 0; i < actualTypes.length; i++) {
 						if(!asmext.Type.subType(actualTypes[i], formalTypes[i]))
@@ -72,6 +85,7 @@ public class CHA {
 				return false;
 			})
 			.collect(Collectors.groupingBy(Method::getDeclaringClassName));
+		
 		return groups.entrySet().parallelStream()
 				.map(e -> bestMatch(e.getValue()))
 				.collect(Collectors.toList());
@@ -105,26 +119,26 @@ public class CHA {
 		 * removed
 		 */
 		@Override
-		public Collection<Method> mayCall(Method m) {
+		public List<Method> mayCall(Method m) {
 			List<Method> methods = new ArrayList<>();
 			for(Invocation callSite : m.retrieveCallSites()) {
 				boolean virtual = true;
 				if(callSite instanceof InvokeStatic 
 						|| callSite instanceof InvokeSpecial)
 					virtual = false;
-				methods.addAll(lookUp(callSite.getOwner(),
+				methods.addAll(lookUp(callSite.owner,
 						callSite.methName, callSite.desc, virtual));
 			}
 			return methods;
 		}
 
 		@Override
-		public Collection<Method> mayCall(Invocation callSite) {
+		public List<Method> mayCall(Invocation callSite) {
 			boolean virtual = true;
 			if(callSite instanceof InvokeStatic 
 					|| callSite instanceof InvokeSpecial)
 				virtual = false;
-			return lookUp(callSite.getOwner(),
+			return lookUp(callSite.owner,
 					callSite.methName, callSite.desc, virtual);
 		}
 	}

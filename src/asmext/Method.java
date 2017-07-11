@@ -27,6 +27,8 @@ public class Method {
 	
 	public final List<Inst> body;
 	
+	public final String[] exceptions;
+	
 	public final List<TryCatchBlock> tcbs;
 	
 	private final String subSignature;
@@ -46,6 +48,7 @@ public class Method {
 		this.access = access;
 		this.body = body;
 		this.desc = desc;
+		this.exceptions = exceptions;
 		subSignature = buildSubSignature(name, getType());
 		fullSignature = buildFullSignature(name, getType(), exceptions);
 		this.tcbs = new ArrayList<>();

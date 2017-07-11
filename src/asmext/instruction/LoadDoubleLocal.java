@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 /**
  * 
@@ -17,22 +18,22 @@ public class LoadDoubleLocal implements LoadLocal {
 	
 	private Label label;
 	
-	private final List<Label> surroundingHandlers;
+	private final List<TryCatchBlockNode> surroundingTCBs;
 	
-	public LoadDoubleLocal(int opcode, List<Label> surroundingHandlers) {
+	public LoadDoubleLocal(int opcode, List<TryCatchBlockNode> surroundingTCBs) {
 		assert(0x26 /*DLOAD_0*/ <= opcode && opcode <= 0x29 /*DLOAD_3*/);
 		this.opcode = opcode;
 		this.varIndex = opcode - 0x26;
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 
-	public LoadDoubleLocal(int opcode, int varIndex, List<Label> surroundingHandlers) {
+	public LoadDoubleLocal(int opcode, int varIndex, List<TryCatchBlockNode> surroundingTCBs) {
 		assert(opcode == Opcodes.DLOAD);
 		this.opcode = opcode;
 		this.varIndex = varIndex;
 		this.label = null;
-		this.surroundingHandlers = surroundingHandlers;
+		this.surroundingTCBs = surroundingTCBs;
 	}
 	
 	@Override
@@ -56,8 +57,8 @@ public class LoadDoubleLocal implements LoadLocal {
 	}
 
 	@Override
-	public List<Label> surroundingHandlers() {
-		return surroundingHandlers;
+	public List<TryCatchBlockNode> surroundingTCBs() {
+		return surroundingTCBs;
 	}
 
 }
