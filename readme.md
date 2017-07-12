@@ -31,13 +31,13 @@ all you need to do is to specify an instanceof Monotone Framework. Thanks to the
 Java 8, such a specification will be super easy. Pleade note that extending ASM does not mean that we have
 restricted flexibility 
 
-In this video, first I am goig to review packages of the ASM-Ext, then through a number of examples, I shall
+In this report, first I am goig to review packages of the ASM-Ext, then through a number of examples, I shall
 show how does call graph analysis and control flow graph construction of ASM-Ext works. Next we will do a
 classic data-flow analysis using ASM-Ext. Finally, I shall describe the difficulties that one may face if
 they want to implement a control flow graph construction program for an object-oriented programming language
 like Java.
 
-Here in Eclipse, I want to review the purpose of each package making up ASM-Ext. This package ("asmext")
+First, I want to review the purpose of each package making up ASM-Ext. The package ("asmext")
 as the name suggests, is the package that contains the main class of the program. In this package there
 are classes to model Java classes, class members such as fields and methods. The package also contains
 classes for modeling different kinds of data types available in Java. The main class of ASM-Ext, receives
