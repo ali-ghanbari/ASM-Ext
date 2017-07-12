@@ -1,10 +1,9 @@
 # ASM-Ext: An Extension to ASM
 
 ## Introduction
-In this section we are going to review ASM-Ext. We are calling this project ASM-Ext for it is an extension
-to ASM and is based on ASM. ASM-Ext allows high level data and control flow analysis. This tool proves to be
-useful in research project when one wishes to quickly write a prototype static analysis to test his/her
-algorithms.
+We are calling this project ASM-Ext for it is an extension to ASM and is based on ASM. ASM-Ext allows
+high level data and control flow analysis. This tool proves to be useful in research project when one
+wishes to quickly write a prototype static analysis to test his/her algorithms.
 
 For those who are not familiar with ASM, ASM is a general, low-level transformation and analysis framework
 for Java bytecode. Java bytecodes are used not only for Java but a number of other programming langauges,
@@ -33,7 +32,7 @@ extensible, e.g. one can write his/her desired fixed-point algorithm.
 
 ### Organization
 
-In this report, first we are goig to review packages of the ASM-Ext, then through a number of examples, we
+In this report, first we are going to review packages of the ASM-Ext, then through a number of examples, we
 will show how does call-graph analysis and control-flow graph construction of ASM-Ext works. Next we will do a
 classic data-flow analysis using ASM-Ext. Finally, we will describe the difficulties that one may face if
 they want to implement a control flow graph construction program for an object-oriented programming language
@@ -73,7 +72,7 @@ specification of the instruction to be created, instantiates the `Inst` class th
 specified bytecode instruction.
 
 The package `controlflow` contains three sub-packages `controlflow.callgraph`, `controlflow.cfg`, and
-`controlflow.analysis'. We describe these packages in the following paragraphs.
+`controlflow.analysis`. We describe these packages in the following paragraphs.
 
 The interface `CallGraph` in the package `controlflow.callgraph` defines the general interface of any
 call-graph. As it is expected, any call-graph must, at least, have two method to query the methods that
@@ -92,7 +91,7 @@ a method body). Although one may desire to insert specifications of try-catch bl
 graphs they contruct, our control-flow graph construction algorithm does not include `TryCatchBlock`s inside
 the graphs it builds.
 
-The package `controlflow.analysis' contains two important classes `CHA` and `CFGBuilder` that are responsible
+The package `controlflow.analysis` contains two important classes `CHA` and `CFGBuilder` that are responsible
 for control flow analysis. The class `CHA` offers a method `doCFA` that builds a call graph of the object
 program based on class hierarchy information that is gathered during class loading. The class `CFGBuilder`
 receives a method, and construct a control-flow graph for the method. The control-flow graph has not only
@@ -144,6 +143,114 @@ size of graph). The class `BitVector`, as the name suggests, implements a bit ve
 in many analyzes, and it is used (for some other purpose) in several places in our implementation of ASM-Ext.
 The parameterized class `ImmutablePair` represents pairs. Lastly, the class `Utilities` offers two methods
 for printing collections.
+
+## Using ASM-Ext
+
+In this section, we are going to show how a programmer uses ASM-Ext in order to conduct data and control flow
+analyses. In what follows first, we show how to access call-graph of the object program and next we shall show
+how to use ASM-Ext to do a Reaching Definition Analysis.
+
+ASM-Ext construct a call-graph once you specify the name of the main class of the object program, and as soon
+as it loads all application classes and all relevant library classes. In order to access the call-graph
+constructed for the object program, all you need to do is to get the *public* field `cg` of the `ASMExt`
+singleton class. Given an object program, the following example code snippet prints the names of te set of all
+methods that are directly called by a method of that program, provided that the `Class` is the name of a class
+in of the program and the class declares a at least one method named `method`.
+
+```java
+Method theMethod = ASMExt.v().getClassByName("Class")
+				.getDeclaredMethodByName("method")
+				.get(0);
+				
+List<Method> callees = ASMExt.v().cg.mayCall(theMethod);
+		
+callees.stream().forEach(m -> System.out.println(m.name));
+```
+
+Now we are going to explain how to use ASM-Ext to doing Reaching Definition Analysis (RDA) on a method of the
+object program. We can specify RDA as an instance of Monotone Framework, first component of which is the
+control-flow graph of the object program piece. To compute control-flow of the method `theMethod` (retrieved
+above) we write:
+
+```java
+CFG cfg = (new CFGBuider(theMethod)).build();
+```
+
+Suppose that the object program and the method `theMethod` is defined as follows:
+
+```java
+class Class {
+	//... something
+	public static void method() {
+		int x = 5;
+		int y;
+		int z;
+		
+		y = x;
+		z = 1;
+		while(y > 1) {
+			z = z * y;
+			y = y - 1;
+		}
+		y = 0;
+		System.out.println(z);
+	}
+	//... something else
+}
+```
+
+The program simply computes factorial of the local variable `x`, and prints out the result that is left in the
+variable `z`. For ease of presentation (and write less code!), we shall represent the local variable `x` with
+integer 0, `y` with 1, and z with 2. We are going to use pair `(v, b)` to represent variable `v` *may* be last
+assigned in a basic block whose number is `b`. We shall use `(v, -1)` to model the fact that we do not know where
+the local variable `v` is last assigned. The lattice on which we are going to conduct our RDA is the powersets of
+the finite set `VARS x BASIC_BLOCKS`, where `VARS` = {0, 1, 2} is the set of variables and `BASIC_BLOCK` is some
+finite subset of the set of natural numbers.
+
+The rest of code for RDA can be written as follows. We leave as an exercise to the *dedicated* reader to explain
+the code.
+
+```java
+List<Integer> VARS = Arrays.asList(0, 1, 2);
+		
+FiniteHashSet<ImmutablePair<Integer, Integer>> iota = new FiniteHashSet<>();
+		
+for(int var : VARS) {
+	iota.add(new ImmutablePair<>(var, -1));
+}
+		
+BiFunction<CFG, Integer, FiniteHashSet<ImmutablePair<Integer, Integer>>> initializer 
+	= (_cfg, _node) -> _cfg.isHead(_node) ? iota : new FiniteHashSet<>();
+@SuppressWarnings("unchecked")
+BiFunction<FiniteHashSet<ImmutablePair<Integer, Integer>>, FiniteHashSet<ImmutablePair<Integer, Integer>>, FiniteHashSet<ImmutablePair<Integer, Integer>>> join 
+	= (_s1, _s2) -> (FiniteHashSet<ImmutablePair<Integer, Integer>>) _s1.join(_s2);
+ThreeVarFunction<CFG, Integer, FiniteHashSet<ImmutablePair<Integer, Integer>>, FiniteHashSet<ImmutablePair<Integer, Integer>>> transferFunction
+	= (_cfg, _node, _input) -> {
+		InstSeq iSeq = (InstSeq) _cfg.getNodeDescriptor(_node);
+		List<Integer> assigned = new ArrayList<>();
+		
+		for(Inst inst : iSeq.instructions) {
+			if(inst instanceof StoreIntLocal) {
+				assigned.add(((StoreIntLocal) inst).varIndex); 
+			}
+		}
+		_input = new FiniteHashSet<ImmutablePair<Integer, Integer>>();
+		_input.addAll(_input.stream().filter(ip -> assigned.contains(ip.first())).collect(Collectors.toList()));
+		for(int assignedVar : assigned)
+			_input.add(new ImmutablePair<>(assignedVar, _node));
+		return _input;
+	};
+		
+MonotoneFramework<FiniteHashSet<ImmutablePair<Integer, Integer>>> rda 
+	= new MonotoneFramework<>(cfg,
+			CFG::succs,
+			initializer, 
+			FiniteHashSet<ImmutablePair<Integer, Integer>>::lte, 
+			join,
+			transferFunction);
+			
+rda.doAnalysis(new Worklist<>(rda));
+```
 
 ## Future Work
 
