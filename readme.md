@@ -252,9 +252,80 @@ MonotoneFramework<FiniteHashSet<ImmutablePair<Integer, Integer>>> rda
 rda.doAnalysis(new Worklist<>(rda));
 ```
 
+## Challenges
+
+Constructing control-flow graphs in the absence of exceptions is all sunshine and flowers, but once we consider
+the exceptions that each instruction may throw, and also consider exception handling mechanism, we face difficulties
+that we are going to point out some of them.
+
+In the latest version of Soot, the tool constructs control-flow graph (suppose that we are talking about Soot's
+`ExceptionalUnitGraph`, though the same problem occurs in `ExceptionalBlockGraph`) for a peice of code like the
+one below, it connects every instruction in the try block to the corresponding handler.
+
+```java
+try {
+	I1; ... In;
+} catch (SOME_SUBTYPE_OF_Throwable e) {
+	J1; ... Jk;
+}
+```
+
+At the first sight, this is necessary for constructing a sound control-flow graph (the one that does not miss any
+flow edges), but with a careful examination we realize that not all instructions in the try block throw exceptions
+that the catch block may catch. ASM-Ext takes into account the set of all possible exceptions that an intruction
+may throw and connects only those intructions to the exception handler that may throw an exception whose type is
+compatible with `SOME_SUBTYPE_OF_Throwable` which is stated in the catch block. In particular, we do a light-weight
+abstract interpretation to infer the type `Throwable` object that each `ATHROW` instruction may through. It is worth
+noting that such processes do not deteriorate the performance of ASM-Ext.
+
+The next complication arises if we consider the possibility of failure of the first intruction (`I1` in the above
+code) in executing successfully. In such a situation, we must add an edge from `I1` each predecessor to the handler,
+thereby modeling the state of machine in case that `I1` fails to execute successfully. When constructing
+`ExceptionalUnitGraph`s, since Soot is commited to be *faithful* to the underlying bytecode, it cannot add nodes
+to the control-flow graphs that does not correspond to any bytecode instruction. Therefore, in the case of a grotesque
+like this (which is not so uncommon in JDK library),
+
+
+```java
+static {
+	try {
+		I1; ... In;
+	} catch (SOME_SUBTYPE_OF_Throwable e) {
+		J1; ... Jk;
+	}
+}
+```
+
+Soot constructs two heads for the control-flow graph of the method. According to John Jorgensen, this is intended to
+take into account the occasions in which `I1` fails to execute successfully (please note that even though he admits
+that this is a poor design decision, he had no choice; as I said, Soot is intended to be faithful to the underlying
+bytecode representation and the tool could not create a *dummy* head node so as to construct uniform, easy-to-deal-with
+control-flow graphs). In such occasions, ASM-Ext adds a dummy head to the control-flow graph (using the neutral
+instruction `NeutralInst`) and creates a single-headed control-flow graph.
+
+
 ## Future Work
 
-In later versions of ASM-Ext, once we build a points-to analysis for it, we shall refine the call-graph by
-consulting points-to information which can in turn refine points-to analysis by providing it with a more
-accurate call graph. 
+In later versions of ASM-Ext, once we build a points-to analysis for it, we shall refine the call-graph by consulting
+points-to information which can in turn refine points-to analysis by providing it with a more accurate call graph.
 
+While dynamic loading and reflection is an important feature of Java, current version of ASM-Ext does not support
+dynamic loading or Java reflection. We need to add support for the features in the future versions. Since ASM-Ext is
+a fast analysis framework, we hope that we can conduct remarkably precise analyses so as to improve precision of
+the existing reflection analyses without incurring significant performance penalty.
+
+Current version of ASM-Ext does not support JAR files, but since JAR file are simple ZIP files, we can extend ASM-Ext
+easily to handle JAR files.
+
+## Cloning & Building
+
+Unfortunately, ASM-Ext lacks any kind of build script, so we need to explain how to build it. First you need a Java 8
+compiler. Since I was using Eclipse Oxygen 4.7.0, I recommend to add the clonned project to that version of Eclipse.
+In Run Configuration window, you need to pass the name of main class of the object program as Program Argument, enable
+assertions by passing `-ea` to VM, and pass the following properties to ASM-Ext. You need to specify class path, i.e.
+where class files of the object program are stored; you can do that through VM argument `-Dasmext.cp=[class-path]`, in
+which you should replace `[class-path]` with the actual class path. You can also ask ASM-Ext to not to print out messages
+about every single task it does, by passing VM the argument `-Dasmext.verbose=false`.
+
+Please note that current version of ASM-Ext does not support JAR files, so in order to analyse Java programs stored in
+JAR files, you need to first unzip them.
