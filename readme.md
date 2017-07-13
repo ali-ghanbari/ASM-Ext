@@ -40,7 +40,7 @@ like Java.
 
 ## Packages
 
-In this section, we are going to review the purpose of each package making up ASM-Ext. The package "asmext,"
+In this section, we are going to review the purpose of each package making up ASM-Ext. The package `asmext`,
 as the name suggests, is the package that contains the main class of the program. In this package there
 are classes to model Java classes, class members such as fields and methods. The package also contains
 classes for modeling different kinds of data types available in Java. The main class of ASM-Ext, receives
@@ -53,11 +53,11 @@ ASM-Ext loads application and library classes, it does a very lightweighted abst
 method bodies to infer the type of parameters fed to certian kind of bytecode instructions. This type
 information proves very useful in constructing accurate control-flow graphs.
 
-Inside "asmext," the package "asmext.instruction" contains abstractions for Java bytecode instructions. We
+Inside `asmext`, the package `asmext.instruction` contains abstractions for Java bytecode instructions. We
 have grouped Java bytecode instructions based on their functionality, e.g. all load instructions are modeled
-by the interface "Load." From our previous experience of using Soot framework, we know that using such
+by the interface `Load`. From our previous experience of using Soot framework, we know that using such
 abstractions makes an analysis framework safe (in that programming under such a framework becomes less error
-prone) and more user-friendly. Among the instructions the class "NeutralInst" is used in control-flow graph
+prone) and more user-friendly. Among the instructions the class `NeutralInst` is used in control-flow graph
 construction to create "dummy" head nodes. Such dummy nodes do not correspond to any bytecode instruction
 inside the body of a method, rather they are added to control-flow graphs to make single-headed,
 easy-to-deal-with control-flow graphs. This package contains over 80 classes, and the root of all them is
